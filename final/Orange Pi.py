@@ -12,7 +12,7 @@ TOPIC_RECEIVE = "sensor/temperature"
 TOPIC_ACK = "sensor/ack"
 
 # Regex pattern to extract temperature from the message
-temperature_pattern = re.compile(r'(\d+)\s*Temperature:\s*(-?\d+)째C')
+temperature_pattern = re.compile(r'(\d+)\s*Temperature:\s*(-?\d+)캜')
 
 # SPI Configuration
 spi = spidev.SpiDev()
@@ -29,8 +29,8 @@ def extract_temperature(data):
     return match.group(2) if match else None
 
 def clean_temperature(temperature):
-    """Cleans the temperature string to avoid duplicates like '째C째C'."""
-    return temperature.replace("째C째C", "째C").replace("째C", "")
+    """Cleans the temperature string to avoid duplicates like '캜캜'."""
+    return temperature.replace("캜캜", "캜").replace("캜", "")
 
 def calculate_delay(start_time, end_time):
     """Calculates delay in milliseconds."""

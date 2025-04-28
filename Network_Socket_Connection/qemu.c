@@ -1,4 +1,4 @@
-#include "qemu/osdep.h"
+﻿#include "qemu/osdep.h"
 #include "hw/sysbus.h"
 #include "hw/misc/sensor_device.h"
 #include "qapi/error.h"
@@ -77,19 +77,19 @@ float generate_realistic_temperature(float current_temperature) {
 static uint64_t sensor_device_read(void* opaque, hwaddr addr, unsigned int size) {
     SensorDeviceState* s = opaque;
     switch (addr) {
-        case REG_TEMP:
-            return s->temperature;
-        case REG_MIN_TEMP:
-            return s->min_temp;
-        case REG_MAX_TEMP:
-            return s->max_temp;
-        case REG_CONTROL:
-            return s->is_sending;
-        case REG_STATUS:
-            return s->status;
-        default:
-            printf("Unknown address: 0x%lx, returning 0xDEADBEEF\n", addr);
-            return 0xDEADBEEF; // Return an error value for unknown addresses
+    case REG_TEMP:
+        return s->temperature;
+    case REG_MIN_TEMP:
+        return s->min_temp;
+    case REG_MAX_TEMP:
+        return s->max_temp;
+    case REG_CONTROL:
+        return s->is_sending;
+    case REG_STATUS:
+        return s->status;
+    default:
+        printf("Unknown address: 0x%lx, returning 0xDEADBEEF\n", addr);
+        return 0xDEADBEEF; // Return an error value for unknown addresses
     }
 }
 
@@ -97,38 +97,39 @@ static uint64_t sensor_device_read(void* opaque, hwaddr addr, unsigned int size)
 static void sensor_device_write(void* opaque, hwaddr addr, uint64_t value, unsigned int size) {
     SensorDeviceState* s = opaque;
     switch (addr) {
-        case REG_MIN_TEMP:
-            s->min_temp = (int)value;
-            printf("Min temperature set to %d°C\n", s->min_temp);
-            break;
-        case REG_MAX_TEMP:
-            s->max_temp = (int)value;
-            printf("Max temperature set to %d°C\n", s->max_temp);
-            break;
-        case REG_STATUS:
-            s->status = (int)value;
-            printf("Sensor status updated to %d\n", s->status);
-            break;
-        case REG_CONTROL:
-            s->is_sending = (int)value;
-            if (s->is_sending == 1) {
-                if (s->sending_thread_created == 0) {
-                    // Create a thread to send temperature data
-                    pthread_create(&send_thread, NULL, send_temperature_thread, s);
-                    pthread_detach(send_thread);
-                    s->sending_thread_created = 1;
-                }
-            } else {
-                if (s->sending_thread_created == 1) {
-                    s->sending_thread_created = 0;
-                    stop_sending(s); // Stop sending data
-                    printf("❌ Sending stopped.\n");
-                }
+    case REG_MIN_TEMP:
+        s->min_temp = (int)value;
+        printf("Min temperature set to %d°C\n", s->min_temp);
+        break;
+    case REG_MAX_TEMP:
+        s->max_temp = (int)value;
+        printf("Max temperature set to %d°C\n", s->max_temp);
+        break;
+    case REG_STATUS:
+        s->status = (int)value;
+        printf("Sensor status updated to %d\n", s->status);
+        break;
+    case REG_CONTROL:
+        s->is_sending = (int)value;
+        if (s->is_sending == 1) {
+            if (s->sending_thread_created == 0) {
+                // Create a thread to send temperature data
+                pthread_create(&send_thread, NULL, send_temperature_thread, s);
+                pthread_detach(send_thread);
+                s->sending_thread_created = 1;
             }
-            break;
-        default:
-            printf("Unknown write address: 0x%lx, ignoring write\n", addr);
-            break;
+        }
+        else {
+            if (s->sending_thread_created == 1) {
+                s->sending_thread_created = 0;
+                stop_sending(s); // Stop sending data
+                printf("❌ Sending stopped.\n");
+            }
+        }
+        break;
+    default:
+        printf("Unknown write address: 0x%lx, ignoring write\n", addr);
+        break;
     }
 }
 
@@ -238,15 +239,18 @@ void send_temperature_to_orangepi(SensorDeviceState* s, int temperature) {
                 gettimeofday(&receive_time, NULL);  // Save the receive time
                 long delay_ms = (receive_time.tv_sec - send_time.tv_sec) * 1000LL + (receive_time.tv_usec - send_time.tv_usec) / 1000;
                 printf("Received ACK | Delay: %ld ms\n", delay_ms); // التعديل هنا
-            } else {
+            }
+            else {
                 printf("No ACK received. Retrying...\n");
             }
-        } else if (ret == 0) {
+        }
+        else if (ret == 0) {
             // Timeout occurred, no ACK received
             printf("No ACK received...\n");
-        } else {
+        }
+        else {
             perror("Error in select");
-        
+
         }
 
         sleep(5); // Send data every 5 seconds
@@ -278,7 +282,8 @@ void handle_ack(SensorDeviceState* s, char* message) {
             printf("ACK received | Delay: %ld ms\n", delay);
             s->ack_received_recently = 1;
         }
-    } else {
+    }
+    else {
         // إذا لم يتم تلقي ACK، نعرض الرسالة
         printf("No ACK received...\n");
         s->ack_received_recently = 0;
